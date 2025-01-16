@@ -1,120 +1,151 @@
 local Library = {}
-local TweenService = game:GetService("TweenService")
 
-Library.Colors = {
-    Blue = Color3.fromRGB(66, 133, 244),
-    Red = Color3.fromRGB(234, 67, 53),
-    Yellow = Color3.fromRGB(251, 188, 5),
-    Green = Color3.fromRGB(52, 168, 83),
-    Background = Color3.fromRGB(255, 255, 255),
-    Text = Color3.fromRGB(60, 64, 67),
-    Border = Color3.fromRGB(218, 220, 224),
-    HoverBlue = Color3.fromRGB(26, 115, 232)
-}
-
-function Library:CreateWindow(config)
-    local Window = {}
+function Library:Init()
     local ScreenGui = Instance.new("ScreenGui")
     local Main = Instance.new("Frame")
     local UICorner = Instance.new("UICorner")
-    local TopBar = Instance.new("Frame")
     local Title = Instance.new("TextLabel")
-    local TabContainer = Instance.new("Frame")
-    local TabContent = Instance.new("Frame")
-
-    -- Window setup code here
-    ScreenGui.Parent = game:GetService("CoreGui")
-    Main.Size = UDim2.new(0, 600, 0, 400)
-    Main.Position = UDim2.new(0.5, -300, 0.5, -200)
-    Main.BackgroundColor3 = Library.Colors.Background
+    local Container = Instance.new("Frame")
+    local UIListLayout = Instance.new("UIListLayout")
     
-    function Window:CreateTab(name)
-        local Tab = {}
-        local TabButton = Instance.new("TextButton")
-        local TabPage = Instance.new("ScrollingFrame")
-        
-        -- Tab setup code here
-        TabButton.Text = name
-        TabButton.BackgroundColor3 = Library.Colors.Blue
-        TabButton.TextColor3 = Color3.new(1, 1, 1)
-        
-        function Tab:CreateButton(config)
-            local Button = Instance.new("TextButton")
-            Button.Size = UDim2.new(0, 180, 0, 40)
-            Button.BackgroundColor3 = Library.Colors.Blue
-            Button.Text = config.Name
-            Button.TextColor3 = Color3.new(1, 1, 1)
-            Button.MouseButton1Click:Connect(config.Callback)
-            return Button
-        end
-        
-        function Tab:CreateSlider(config)
-            local Slider = Instance.new("Frame")
-            local SliderBar = Instance.new("Frame")
-            local SliderButton = Instance.new("TextButton")
-            
-            -- Slider functionality here
-            SliderBar.BackgroundColor3 = Library.Colors.Border
-            SliderButton.BackgroundColor3 = Library.Colors.Blue
-            
-            -- Add drag functionality
-            local dragging = false
-            SliderButton.MouseButton1Down:Connect(function()
-                dragging = true
-            end)
-            
-            game:GetService("UserInputService").InputEnded:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    dragging = false
-                end
-            end)
-            
-            return Slider
-        end
-        
-        function Tab:CreateToggle(config)
-            local Toggle = Instance.new("Frame")
-            local ToggleButton = Instance.new("TextButton")
-            local Status = Instance.new("Frame")
-            
-            -- Toggle setup
-            ToggleButton.BackgroundColor3 = Library.Colors.Border
-            Status.BackgroundColor3 = config.Default and Library.Colors.Green or Library.Colors.Red
-            
-            ToggleButton.MouseButton1Click:Connect(function()
-                config.Value = not config.Value
-                Status.BackgroundColor3 = config.Value and Library.Colors.Green or Library.Colors.Red
-                config.Callback(config.Value)
-            end)
-            
-            return Toggle
-        end
-        
-        function Tab:CreateDropdown(config)
-            local Dropdown = Instance.new("Frame")
-            local DropButton = Instance.new("TextButton")
-            local ItemList = Instance.new("ScrollingFrame")
-            
-            -- Dropdown setup
-            DropButton.Text = config.Name
-            DropButton.BackgroundColor3 = Library.Colors.Blue
-            
-            -- Add items
-            for _, item in ipairs(config.Options) do
-                local ItemButton = Instance.new("TextButton")
-                ItemButton.Text = item
-                ItemButton.MouseButton1Click:Connect(function()
-                    config.Callback(item)
-                    DropButton.Text = item
-                end)
-            end
-            
-            return Dropdown
-        end
-        
-        return Tab
-    end
+    ScreenGui.Name = "SimpleUI"
+    ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
     
-    return Window
+    Main.Name = "Main"
+    Main.Parent = ScreenGui
+    Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    Main.Position = UDim2.new(0.5, -150, 0.5, -100)
+    Main.Size = UDim2.new(0, 300, 0, 200)
+    Main.Active = true
+    Main.Draggable = true
+    
+    UICorner.CornerRadius = UDim.new(0, 6)
+    UICorner.Parent = Main
+    
+    Title.Name = "Title"
+    Title.Parent = Main
+    Title.BackgroundTransparency = 1
+    Title.Position = UDim2.new(0, 10, 0, 5)
+    Title.Size = UDim2.new(1, -20, 0, 30)
+    Title.Font = Enum.Font.GothamBold
+    Title.Text = "Simple UI"
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.TextSize = 16
+    
+    Container.Name = "Container"
+    Container.Parent = Main
+    Container.BackgroundTransparency = 1
+    Container.Position = UDim2.new(0, 10, 0, 40)
+    Container.Size = UDim2.new(1, -20, 1, -50)
+    
+    UIListLayout.Parent = Container
+    UIListLayout.Padding = UDim.new(0, 10)
+    UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    
+    return Library
 end
 
+function Library:AddSlider(title, min, max, default, callback)
+    local Slider = Instance.new("Frame")
+    local SliderTitle = Instance.new("TextLabel")
+    local SliderBar = Instance.new("Frame")
+    local SliderFill = Instance.new("Frame")
+    local SliderButton = Instance.new("TextButton")
+    local Value = Instance.new("TextLabel")
+    
+    Slider.Name = "Slider"
+    Slider.Parent = self.Main.Container
+    Slider.BackgroundTransparency = 1
+    Slider.Size = UDim2.new(1, 0, 0, 35)
+    
+    SliderTitle.Name = "Title"
+    SliderTitle.Parent = Slider
+    SliderTitle.BackgroundTransparency = 1
+    SliderTitle.Size = UDim2.new(1, -50, 0, 20)
+    SliderTitle.Font = Enum.Font.Gotham
+    SliderTitle.Text = title
+    SliderTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    SliderTitle.TextSize = 14
+    SliderTitle.TextXAlignment = Enum.TextXAlignment.Left
+    
+    SliderBar.Name = "Bar"
+    SliderBar.Parent = Slider
+    SliderBar.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    SliderBar.BorderSizePixel = 0
+    SliderBar.Position = UDim2.new(0, 0, 0, 25)
+    SliderBar.Size = UDim2.new(1, 0, 0, 5)
+    
+    SliderFill.Name = "Fill"
+    SliderFill.Parent = SliderBar
+    SliderFill.BackgroundColor3 = Color3.fromRGB(0, 162, 255)
+    SliderFill.BorderSizePixel = 0
+    SliderFill.Size = UDim2.new(0.5, 0, 1, 0)
+    
+    Value.Name = "Value"
+    Value.Parent = Slider
+    Value.BackgroundTransparency = 1
+    Value.Position = UDim2.new(1, -45, 0, 0)
+    Value.Size = UDim2.new(0, 45, 0, 20)
+    Value.Font = Enum.Font.Gotham
+    Value.Text = tostring(default)
+    Value.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Value.TextSize = 14
+    
+    local dragging = false
+    
+    SliderBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+        end
+    end)
+    
+    game:GetService("UserInputService").InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+    
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local mousePos = game:GetService("UserInputService"):GetMouseLocation()
+            local relativePos = mousePos.X - SliderBar.AbsolutePosition.X
+            local percentage = math.clamp(relativePos / SliderBar.AbsoluteSize.X, 0, 1)
+            local value = math.floor(min + (max - min) * percentage)
+            
+            SliderFill.Size = UDim2.new(percentage, 0, 1, 0)
+            Value.Text = tostring(value)
+            callback(value)
+        end
+    end)
+end
+
+function Library:AddButton(text, callback)
+    local Button = Instance.new("TextButton")
+    local UICorner = Instance.new("UICorner")
+    
+    Button.Name = "Button"
+    Button.Parent = self.Main.Container
+    Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    Button.Size = UDim2.new(1, 0, 0, 30)
+    Button.Font = Enum.Font.Gotham
+    Button.Text = text
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.TextSize = 14
+    Button.AutoButtonColor = false
+    
+    UICorner.CornerRadius = UDim.new(0, 4)
+    UICorner.Parent = Button
+    
+    Button.MouseButton1Click:Connect(callback)
+    
+    -- Hover effect
+    Button.MouseEnter:Connect(function()
+        Button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    end)
+    
+    Button.MouseLeave:Connect(function()
+        Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    end)
+end
+
+return Library
